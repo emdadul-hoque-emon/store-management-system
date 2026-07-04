@@ -1,45 +1,47 @@
-import { numeric, varchar } from 'drizzle-orm/pg-core';
-import { text } from 'drizzle-orm/pg-core';
-import { integer } from 'drizzle-orm/pg-core';
-import { boolean } from 'drizzle-orm/pg-core';
-import { timestamp } from 'drizzle-orm/pg-core';
-import { uuid } from 'drizzle-orm/pg-core';
-import { pgTable } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  varchar,
+  integer,
+  numeric,
+  timestamp,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import { units } from '../unit/unit.schema';
-import { category } from '../category/category.schema';
+import { unique } from 'drizzle-orm/pg-core';
 
-export const products = pgTable('products', {
-  id: uuid().defaultRandom().primaryKey(),
+export const products = pgTable(
+  'products',
+  {
+    id: uuid().defaultRandom().primaryKey(),
 
-  barcode: varchar({ length: 50 }),
+    name: varchar({ length: 255 }).notNull(),
 
-  sku: varchar({ length: 50 }),
+    barcode: varchar({ length: 50 }).notNull().unique(),
 
-  name: varchar({ length: 255 }).notNull(),
+    unitId: uuid()
+      .references(() => units.id)
+      .notNull(),
 
-  categoryId: uuid().references(() => category.id),
+    price: numeric({ precision: 12, scale: 2 })
+      .$type<number>()
+      .default(0)
+      .notNull(),
 
-  // brandId: uuid().references(() => brands.id),
+    stock: integer().default(0).notNull(),
 
-  unitId: uuid().references(() => units.id),
+    imageUrl: varchar({ length: 500 }),
 
-  purchasePrice: numeric({ precision: 12, scale: 2 }).notNull(),
+    isActive: boolean().default(true),
 
-  sellingPrice: numeric({ precision: 12, scale: 2 }).notNull(),
+    createdAt: timestamp().defaultNow().notNull(),
 
-  stock: integer().default(0).notNull(),
-
-  minimumStock: integer().default(0).notNull(),
-
-  imageUrl: text(),
-
-  description: text(),
-
-  isActive: boolean().default(true).notNull(),
-
-  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-
-  updatedAt: timestamp({ withTimezone: true })
-    .defaultNow()
-    .$onUpdateFn(() => new Date()),
-});
+    updatedAt: timestamp()
+      .defaultNow()
+      .notNull()
+      .$onUpdateFn(() => new Date()),
+  },
+  (product) => [
+    unique('products_name_unit_unique').on(product.name, product.unitId),
+  ],
+);

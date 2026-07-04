@@ -1,0 +1,1 @@
+ALTER TABLE "products" ALTER COLUMN "barcode" SET DATA TYPE varchar(50);

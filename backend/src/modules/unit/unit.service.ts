@@ -1,15 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { DATABASE_CONNECTION } from '../database/constant';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '../database/schema';
 
 @Injectable()
 export class UnitService {
-  create(createUnitDto: CreateUnitDto) {
-    return 'This action adds a new unit';
+  constructor(
+    @Inject(DATABASE_CONNECTION)
+    private readonly db: NodePgDatabase<typeof schema>,
+  ) {}
+  async create(createUnitDto: CreateUnitDto) {
+    const res = await this.db
+      .insert(schema.units)
+      .values(createUnitDto)
+      .returning();
+
+    return res;
   }
 
-  findAll() {
-    return `This action returns all unit`;
+  async findAll() {
+    const res = await this.db.query.units.findMany();
+    return res;
   }
 
   findOne(id: number) {

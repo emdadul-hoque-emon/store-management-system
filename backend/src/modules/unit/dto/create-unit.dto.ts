@@ -1,1 +1,9 @@
-export class CreateUnitDto {}
+import { IsString } from 'class-validator';
+
+export class CreateUnitDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  shortName: string;
+}
