@@ -1,16 +1,14 @@
+import { integer } from 'drizzle-orm/pg-core';
 import {
   pgTable,
-  pgEnum,
   uuid,
-  varchar,
   numeric,
-  text,
   timestamp,
+  varchar,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
-import { user } from '../user/user.schema';
-import { customer } from '../customer/customer.schema';
-
-export const invoiceSourceEnum = pgEnum('invoice_source', ['manual', 'image']);
+import { products } from '../product/product.schema';
+import { relations } from 'drizzle-orm';
 
 export const invoiceStatusEnum = pgEnum('invoice_status', [
   'paid',
@@ -18,42 +16,62 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
   'due',
 ]);
 
-export const paymentMethodEnum = pgEnum('payment_method', [
-  'cash',
-  'card',
-  'other',
-]);
-
-export const invoice = pgTable('invoices', {
+export const invoices = pgTable('invoices', {
   id: uuid().defaultRandom().primaryKey(),
 
-  invoiceNo: varchar({ length: 30 }).notNull().unique(),
+  invoiceNo: varchar({ length: 50 }).notNull().unique(),
 
-  customerId: uuid().references(() => customer.id),
+  customerName: varchar({ length: 150 }).notNull(),
 
-  createdBy: uuid().references(() => user.id),
+  subtotal: numeric({ precision: 12, scale: 2 }).default('0'),
 
-  source: invoiceSourceEnum().default('manual').notNull(),
-
-  subtotal: numeric({ precision: 12, scale: 2 }).notNull(),
-
-  discount: numeric({ precision: 12, scale: 2 }).default('0').notNull(),
-
-  tax: numeric({ precision: 12, scale: 2 }).default('0').notNull(),
+  discount: numeric({ precision: 12, scale: 2 }).default('0'),
 
   total: numeric({ precision: 12, scale: 2 }).notNull(),
 
-  paidAmount: numeric({ precision: 12, scale: 2 }).default('0').notNull(),
+  paid: numeric({ precision: 12, scale: 2 }).default('0'),
 
-  dueAmount: numeric({ precision: 12, scale: 2 }).default('0').notNull(),
+  due: numeric({ precision: 12, scale: 2 }).default('0'),
 
-  status: invoiceStatusEnum().default('due').notNull(),
+  status: invoiceStatusEnum().default('due'),
 
-  paymentMethod: paymentMethodEnum(),
+  imageUrl: varchar({ length: 500 }), // optional uploaded bill image
 
-  imageUrl: text(),
+  note: varchar({ length: 255 }),
 
-  note: text(),
-
-  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
 });
+
+export const invoiceItems = pgTable('invoice_items', {
+  id: uuid().defaultRandom().primaryKey(),
+
+  invoiceId: uuid()
+    .notNull()
+    .references(() => invoices.id, { onDelete: 'cascade' }),
+
+  productId: uuid()
+    .notNull()
+    .references(() => products.id),
+
+  quantity: integer().notNull(),
+
+  price: numeric({ precision: 12, scale: 2 }).notNull(),
+
+  total: numeric({ precision: 12, scale: 2 }).notNull(),
+});
+
+export const invoicesRelations = relations(invoices, ({ many }) => ({
+  items: many(invoiceItems),
+}));
+
+export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [invoiceItems.invoiceId],
+    references: [invoices.id],
+  }),
+
+  product: one(products, {
+    fields: [invoiceItems.productId],
+    references: [products.id],
+  }),
+}));

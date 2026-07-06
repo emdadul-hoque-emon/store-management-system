@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { DATABASE_CONNECTION } from '../database/constant';
@@ -38,11 +38,32 @@ export class ProductService {
     return products;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    return await this.db
+      .select({
+        id: schema.products.id,
+        name: schema.products.name,
+        price: schema.products.price,
+        stock: schema.products.stock,
+        barcode: schema.products.barcode,
+        unit: {
+          name: schema.units.name,
+          shortName: schema.units.shortName,
+        },
+      })
+      .from(schema.products)
+      .leftJoin(schema.units, eq(schema.units.id, schema.products.unitId))
+      .where(eq(schema.products.id, id))
+      .then((res) => {
+        return res[0];
+      })
+      .catch((e) => {
+        console.log(e);
+        throw new NotFoundException('Product not found');
+      });
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
+  update(id: string, updateProductDto: UpdateProductDto) {
     return `This action updates a #${id} product`;
   }
 

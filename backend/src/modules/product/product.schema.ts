@@ -9,6 +9,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { units } from '../unit/unit.schema';
 import { unique } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import { invoiceItems } from '../invoice/invoice.schema';
 
 export const products = pgTable(
   'products',
@@ -45,3 +47,11 @@ export const products = pgTable(
     unique('products_name_unit_unique').on(product.name, product.unitId),
   ],
 );
+
+export const productRelations = relations(products, ({ one, many }) => ({
+  unit: one(units, {
+    fields: [products.unitId],
+    references: [units.id],
+  }),
+  items: many(invoiceItems),
+}));
