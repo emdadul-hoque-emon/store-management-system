@@ -1,0 +1,1 @@
+ALTER TABLE "invoices" ALTER COLUMN "invoiceNo" SET DATA TYPE bigserial;

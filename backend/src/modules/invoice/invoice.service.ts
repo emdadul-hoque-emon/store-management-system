@@ -10,7 +10,14 @@ import {
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { DATABASE_CONNECTION } from '../database/constant';
 import { uploadFileToCloudinary } from '../../common/utils/file-uploader';
-import { eq, inArray } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
+import { and } from 'drizzle-orm';
+import { QueryProductDto } from '../product/dto/query-product.dto';
+import { asc } from 'drizzle-orm';
+import { SQL } from 'drizzle-orm';
+import { or } from 'drizzle-orm';
+import { ilike } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 @Injectable()
 export class InvoiceService {
@@ -35,11 +42,17 @@ export class InvoiceService {
     const { items = [], ...invoiceData } = dto;
 
     return this.db.transaction(async (trx) => {
+      const lastInvoice = await trx.query.invoices.findFirst({
+        where: and(eq(schema.invoices.storeId, dto.storeId)),
+        orderBy: desc(schema.invoices.invoiceNo),
+      });
+      const nextInvoiceNo = (lastInvoice?.invoiceNo ?? 0) + 1;
       const [invoice] = await trx
         .insert(schema.invoices)
         .values({
           ...invoiceData,
           imageUrl,
+          invoiceNo: nextInvoiceNo,
         })
         .returning();
 
@@ -108,8 +121,45 @@ export class InvoiceService {
     });
   }
 
-  findAll() {
-    return `This action returns all invoice`;
+  async findAll(query: QueryProductDto) {
+    const order =
+      query?.order === 'asc'
+        ? asc(schema.invoices[query.orderBy] || 'created_at')
+        : desc(schema.invoices[query.orderBy] || 'created_at');
+
+    const filters: (SQL<unknown> | undefined)[] = [];
+
+    if (query.search) {
+      filters.push(
+        or(
+          ilike(schema.invoices.customerName, `%${query.search}%`),
+          ilike(schema.invoices.customerPhone, `%${query.search}%`),
+        ),
+      );
+    }
+
+    const invoices = await this.db
+      .select()
+      .from(schema.invoices)
+      .where(filters.length > 0 ? and(...filters) : undefined)
+      .limit(query.limit)
+      .offset((query.page - 1) * query.limit)
+      .orderBy(order);
+
+    const count = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.invoices)
+      .where(filters.length > 0 ? and(...filters) : undefined)
+      .then((res) => res[0].count);
+
+    return {
+      data: invoices,
+      meta: {
+        total: count,
+        page: query.page,
+        limit: query.limit,
+      },
+    };
   }
 
   findOne(id: number) {

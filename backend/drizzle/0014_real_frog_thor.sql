@@ -1,0 +1,1 @@
+ALTER TABLE "invoices" ADD COLUMN "customerPhone" varchar(20) NOT NULL;

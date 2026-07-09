@@ -4,6 +4,7 @@ import { UpdateUnitDto } from './dto/update-unit.dto';
 import { DATABASE_CONNECTION } from '../database/constant';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '../database/schema';
+import { unitSeed } from '../database/data/unites';
 
 @Injectable()
 export class UnitService {

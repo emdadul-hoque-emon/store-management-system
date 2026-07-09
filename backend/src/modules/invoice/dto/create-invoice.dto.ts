@@ -1,9 +1,11 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -13,6 +15,7 @@ export class CreateInvoiceDto {
   customerName: string;
 
   @IsString()
+  @IsOptional()
   customerPhone: string;
 
   @IsString()
@@ -47,6 +50,10 @@ export class CreateInvoiceDto {
   @IsOptional()
   discount: string;
 
+  @IsUUID()
+  @IsOptional()
+  storeId: string;
+
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -59,6 +66,8 @@ export class CreateInvoiceItemDto {
   productId: string;
 
   @Type(() => Number)
+  @IsNumber()
+  @Min(1)
   quantity: number;
 
   @IsString()

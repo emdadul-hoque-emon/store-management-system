@@ -17,6 +17,8 @@ export const products = pgTable(
   {
     id: uuid().defaultRandom().primaryKey(),
 
+    storeId: uuid().notNull(),
+
     name: varchar({ length: 255 }).notNull(),
 
     barcode: varchar({ length: 50 }).notNull().unique(),

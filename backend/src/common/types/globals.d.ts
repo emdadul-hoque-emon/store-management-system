@@ -7,6 +7,7 @@ declare global {
       role: UserRole;
       sub: string;
       email: string;
+      storeId: string;
     }
   }
 }
@@ -15,6 +16,7 @@ declare module 'jsonwebtoken' {
     role: UserRole;
     sub: string;
     email: string;
+    storeId: string;
   }
 }
 

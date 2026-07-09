@@ -1,4 +1,4 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum, IsString, IsUUID } from 'class-validator';
 import { userRoleEnum } from '../user.schema';
 
 export class CreateUserDto {
@@ -10,6 +10,9 @@ export class CreateUserDto {
 
   @IsString()
   email: string;
+
+  @IsUUID()
+  storeId: string;
 
   @IsString()
   password: string;

@@ -4,6 +4,7 @@ import { timestamp } from 'drizzle-orm/pg-core';
 import { uuid } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 import { products } from '../product/product.schema';
+import { numeric } from 'drizzle-orm/pg-core';
 
 export const units = pgTable('units', {
   id: uuid().defaultRandom().primaryKey(),
@@ -11,6 +12,10 @@ export const units = pgTable('units', {
   name: varchar({ length: 50 }).notNull(),
 
   shortName: varchar({ length: 20 }).notNull(),
+
+  baseUnit: varchar({ length: 50 }).notNull(),
+
+  conversionFactor: numeric({ precision: 12, scale: 2 }).$type<number>(),
 
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 });

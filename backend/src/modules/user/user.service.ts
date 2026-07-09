@@ -39,6 +39,14 @@ export class UserService {
       columns: {
         password: false,
       },
+      with: {
+        store: {
+          columns: {
+            name: true,
+            id: true,
+          },
+        },
+      },
     });
   }
 

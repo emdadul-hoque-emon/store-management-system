@@ -19,4 +19,7 @@ export class CreateProductDto {
 
   @IsUUID()
   unitId: string;
+
+  @IsUUID()
+  storeId: string;
 }

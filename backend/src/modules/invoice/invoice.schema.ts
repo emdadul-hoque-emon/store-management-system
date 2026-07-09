@@ -1,4 +1,4 @@
-import { integer } from 'drizzle-orm/pg-core';
+import { bigint, bigserial, integer } from 'drizzle-orm/pg-core';
 import {
   pgTable,
   uuid,
@@ -9,6 +9,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { products } from '../product/product.schema';
 import { relations } from 'drizzle-orm';
+import { store } from '../store/store.schema';
 
 export const invoiceStatusEnum = pgEnum('invoice_status', [
   'paid',
@@ -19,9 +20,11 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
 export const invoices = pgTable('invoices', {
   id: uuid().defaultRandom().primaryKey(),
 
-  invoiceNo: varchar({ length: 50 }).notNull().unique(),
+  storeId: uuid().notNull(),
+  invoiceNo: integer().notNull(),
 
   customerName: varchar({ length: 150 }).notNull(),
+  customerPhone: varchar({ length: 20 }).notNull(),
 
   subtotal: numeric({ precision: 12, scale: 2 }).default('0'),
 
@@ -60,8 +63,12 @@ export const invoiceItems = pgTable('invoice_items', {
   total: numeric({ precision: 12, scale: 2 }).notNull(),
 });
 
-export const invoicesRelations = relations(invoices, ({ many }) => ({
+export const invoicesRelations = relations(invoices, ({ many, one }) => ({
   items: many(invoiceItems),
+  store: one(store, {
+    fields: [invoices.storeId],
+    references: [store.id],
+  }),
 }));
 
 export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
