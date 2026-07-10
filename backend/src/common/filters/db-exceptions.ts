@@ -16,6 +16,13 @@ export class DrizzleExceptionFilter implements ExceptionFilter {
       });
     }
 
+    if (cause?.code === '22P02') {
+      return response.status(400).json({
+        success: false,
+        message: 'Invalid data type, ' + cause.message,
+      });
+    }
+
     return response.status(500).json({
       success: false,
       message: 'Database error, ' + exception.message,

@@ -275,13 +275,19 @@ export default async function Page({
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2 transition-opacity group-hover:opacity-100">
-                          <button
-                            type="button"
+                          <Link
+                            href={`/invoices/${invoice.id}`}
                             className="p-1 hover:text-secondary-container"
                             title="View"
                           >
-                            <Eye className="h-4 w-4" />
-                          </button>
+                            <button
+                              type="button"
+                              className="p-1 hover:text-secondary-container"
+                              title="View"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          </Link>
                           <button
                             type="button"
                             className="p-1 hover:text-secondary-container"

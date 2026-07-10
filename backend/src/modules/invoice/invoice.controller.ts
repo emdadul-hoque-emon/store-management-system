@@ -63,7 +63,7 @@ export class InvoiceController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.invoiceService.findOne(+id);
+    return this.invoiceService.findOne(id);
   }
 
   @Patch(':id')

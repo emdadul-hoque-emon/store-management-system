@@ -47,7 +47,7 @@ export class StoreController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.storeService.findOne(+id);
+    return this.storeService.findOne(id);
   }
 
   @Patch(':id')

@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { DATABASE_CONNECTION } from '../database/constant';
@@ -86,8 +91,12 @@ export class StoreService {
     return await this.db.query.store.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} store`;
+  async findOne(id: string) {
+    const store = await this.db.query.store.findFirst({
+      where: eq(schema.store.id, id),
+    });
+    if (!store) throw new NotFoundException('Store not found');
+    return store;
   }
 
   update(id: number, updateStoreDto: UpdateStoreDto) {

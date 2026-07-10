@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import * as schema from '../database/schema';
@@ -163,8 +168,33 @@ export class InvoiceService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} invoice`;
+  async findOne(id: string) {
+    const invoice = await this.db.query.invoices.findFirst({
+      where: eq(schema.invoices.id, id),
+      with: {
+        items: {
+          with: {
+            product: {
+              columns: {
+                name: true,
+                barcode: true,
+              },
+            },
+          },
+          columns: {
+            id: true,
+            quantity: true,
+            price: true,
+            total: true,
+          },
+        },
+      },
+    });
+
+    if (!invoice) {
+      throw new NotFoundException(`Invoice with id ${id} not found`);
+    }
+    return invoice;
   }
 
   update(id: number, updateInvoiceDto: UpdateInvoiceDto) {
