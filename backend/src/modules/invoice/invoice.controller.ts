@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   Req,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -20,6 +21,9 @@ import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 import { QueryProductDto } from '../product/dto/query-product.dto';
+import { RolesGuard } from '../../common/guards/roles/roles.guard';
+import { Roles } from '../../common/guards/roles/roles.decorator';
+import { userRoleEnum } from '../user/user.schema';
 
 @Controller({
   path: 'invoice',
@@ -49,9 +53,12 @@ export class InvoiceController {
     return this.invoiceService.create(createInvoiceDto, file);
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(...Object.values(userRoleEnum.enumValues))
   @Get()
-  findAll(@Query() query: QueryProductDto) {
-    return this.invoiceService.findAll(query);
+  findAll(@Query() query: QueryProductDto, @Req() req: Request) {
+    console.log(req.user);
+    return this.invoiceService.findAll(query, req.user.storeId);
   }
 
   @Get(':id')

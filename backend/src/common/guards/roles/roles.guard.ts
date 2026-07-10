@@ -30,7 +30,6 @@ export class RolesGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync(token);
-      console.log(roles);
       request['user'] = payload;
       return roles.includes(payload.role);
     } catch (error) {

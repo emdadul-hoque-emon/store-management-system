@@ -54,6 +54,7 @@ export default function InvoiceForm({
   const [products, setProducts] = useState<InvoiceProduct[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handlePrint = () => window.print();
@@ -101,35 +102,49 @@ export default function InvoiceForm({
         return;
       }
 
-      if (products.length === 0) {
-        setError("Please add at least one product to the invoice.");
-        return;
+      if (inputMode === "image") {
+        const formData = new FormData();
+        formData.append("storeId", storeId);
+        formData.append("customerName", customerName);
+        formData.append("customerPhone", customerPhone);
+        formData.append("total", "0");
+        formData.append("file", imageFile!);
+        const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+        const data = await res.json();
+        console.log(data);
+      } else {
+        if (products.length === 0) {
+          setError("Please add at least one product to the invoice.");
+          return;
+        }
+        const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customerName,
+            customerPhone: customerPhone.toString(),
+            storeId,
+            total: products.reduce((acc, p) => acc + p.total, 0).toString(),
+            items: products.map((p) => ({
+              productId: p.id,
+              quantity: p.quantity,
+              price: p.price,
+              total: p.total.toString(),
+            })),
+            notes,
+            taxRate,
+          }),
+          credentials: "include",
+        });
+
+        const data = await res.json();
       }
-
-      const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          customerName,
-          customerPhone: customerPhone.toString(),
-          storeId,
-          total: products.reduce((acc, p) => acc + p.total, 0).toString(),
-          items: products.map((p) => ({
-            productId: p.id,
-            quantity: p.quantity,
-            price: p.price,
-            total: p.total.toString(),
-          })),
-          notes,
-          taxRate,
-        }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      console.log(data);
     } catch (error) {
       console.log(error);
       setError("An error occurred while saving the invoice.");
@@ -237,7 +252,14 @@ export default function InvoiceForm({
             </div>
 
             {inputMode === "image" ? (
-              <ImageUpload onItemsExtracted={handleItemsExtracted} />
+              <ImageUpload
+                onItemsExtracted={handleItemsExtracted}
+                customerName={customerName}
+                customerPhone={customerPhone}
+                storeId={storeId}
+                onFileChange={(file) => setImageFile(file)}
+                imageFile={imageFile}
+              />
             ) : (
               <div>
                 <ProductLookup onAddItem={handleAddProduct} />

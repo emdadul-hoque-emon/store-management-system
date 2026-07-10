@@ -1,5 +1,6 @@
 import InvoiceFilters from "@/components/modules/invoice/InvoiceFilters";
 import { serverFetch } from "@/lib/serverFetch";
+import { auth } from "@/lib/session";
 import {
   AlertTriangle,
   CalendarDays,
@@ -206,6 +207,9 @@ export default async function Page({
                   <th className="px-6 py-3 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
                     Status
                   </th>
+                  <th className="px-6 py-3 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
+                    Type
+                  </th>
                   <th className="px-6 py-3 text-right font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
                     Actions
                   </th>
@@ -256,11 +260,18 @@ export default async function Page({
                         {invoice.total}
                       </td>
                       <td className="px-6 py-4">
-                        <span
+                        {/* <span
                           className={`rounded-sm border px-2 py-1 text-[10px] font-bold uppercase `}
-                        >
-                          {invoice.status}
-                        </span>
+                        > */}
+                        {invoice.status}
+                        {/* </span> */}
+                      </td>
+                      <td className="px-6 py-4">
+                        {/* <span
+                          className={`rounded-sm border px-2 py-1 text-[10px] font-bold uppercase `}
+                        > */}
+                        {invoice.type}
+                        {/* </span> */}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2 transition-opacity group-hover:opacity-100">

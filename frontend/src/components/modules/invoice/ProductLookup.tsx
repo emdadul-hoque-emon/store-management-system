@@ -19,15 +19,6 @@ interface ProductLookupProps {
   onAddItem: (item: InvoiceProduct) => void;
 }
 
-// function productToLineItem(product: Product): LineItem {
-//   return {
-//     id: crypto.randomUUID(),
-//     description: product.name,
-//     quantity: 1,
-//     unitPrice: product.unitPrice,
-//   };
-// }
-
 export function ProductLookup({ onAddItem }: ProductLookupProps) {
   const [mode, setMode] = useState<LookupMode>("barcode");
   const [query, setQuery] = useState("");

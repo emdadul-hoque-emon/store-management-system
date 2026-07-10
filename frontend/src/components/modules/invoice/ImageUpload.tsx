@@ -5,14 +5,27 @@ import { UploadCloud, ImageIcon, X, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { LineItem } from "@/types/invoice";
+import Image from "next/image";
 
 interface ImageUploadProps {
   onItemsExtracted: (items: LineItem[]) => void;
+  customerName: string;
+  customerPhone: string;
+  storeId: string;
+  onFileChange: (file: File | null) => void;
+  imageFile: File | null;
 }
 
 type UploadState = "idle" | "dragging" | "uploading" | "done" | "error";
 
-export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
+export function ImageUpload({
+  onItemsExtracted,
+  customerName,
+  customerPhone,
+  storeId,
+  onFileChange,
+  imageFile,
+}: ImageUploadProps) {
   const [state, setState] = useState<UploadState>("idle");
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
@@ -20,42 +33,39 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const simulateExtraction = useCallback(
-    (file: File) => {
+    async (file: File) => {
       setState("uploading");
       setFileName(file.name);
+
+      // formData
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("storeId", storeId);
+      formData.append("customerName", customerName);
+      formData.append("customerPhone", customerPhone);
 
       // Read the file as a data URL for preview
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target?.result as string);
-      reader.readAsDataURL(file);
+      const blob = reader.readAsDataURL(file);
 
-      // Simulate AI extraction after 2s
-      setTimeout(() => {
-        const mockItems: LineItem[] = [
-          {
-            id: crypto.randomUUID(),
-            description: "Web Design & Development",
-            quantity: 1,
-            unitPrice: 1200,
-          },
-          {
-            id: crypto.randomUUID(),
-            description: "Logo Design Package",
-            quantity: 1,
-            unitPrice: 450,
-          },
-          {
-            id: crypto.randomUUID(),
-            description: "Monthly Maintenance",
-            quantity: 3,
-            unitPrice: 150,
-          },
-        ];
-        onItemsExtracted(mockItems);
+      try {
+        const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+
+        const data = await res.json();
+        console.log(data);
         setState("done");
-      }, 2200);
+      } catch (error) {
+        console.error("Error extracting invoice items:", error);
+      } finally {
+        setState("done");
+      }
     },
-    [onItemsExtracted],
+    [onItemsExtracted, storeId, customerName, customerPhone],
   );
 
   const handleFile = useCallback(
@@ -66,9 +76,11 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
         return;
       }
       setErrorMsg("");
-      simulateExtraction(file);
+      setPreview(URL.createObjectURL(file));
+      onFileChange(file); // Notify parent component about the file change
+      setState("done");
     },
-    [simulateExtraction],
+    [onFileChange],
   );
 
   const handleDrop = useCallback(
@@ -87,6 +99,7 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
     setFileName("");
     setErrorMsg("");
     if (inputRef.current) inputRef.current.value = "";
+    onFileChange(null); // Notify parent component that the file has been reset
   };
 
   return (
@@ -100,6 +113,7 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
           const file = e.target.files?.[0];
           if (file) handleFile(file);
         }}
+        name="file"
       />
 
       {state === "idle" || state === "dragging" || state === "error" ? (
@@ -137,12 +151,6 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
               — PNG, JPG, WEBP
             </p>
           </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-accent px-3 py-1">
-            <Sparkles className="size-3 text-primary" />
-            <span className="text-xs text-primary font-medium">
-              AI-powered line item extraction
-            </span>
-          </div>
           {state === "error" && (
             <p className="text-xs text-destructive">{errorMsg}</p>
           )}
@@ -172,20 +180,26 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
             <div className="h-full bg-primary rounded-full animate-[progress_2.2s_ease-in-out_forwards]" />
           </div>
         </div>
-      ) : (
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent">
-            <ImageIcon className="size-4 text-primary" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground truncate">
-              {fileName}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              3 line items extracted
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5">
+      ) : state === "done" ? (
+        <div className="relative w-80 h-80 rounded-lg overflow-hidden border border-border">
+          {preview && (
+            <div>
+              <Button
+                variant="ghost"
+                className="z-10 absolute top-0 right-0 size-5 rounded-full"
+                onClick={handleReset}
+              >
+                <X className="size-3.5" aria-label="Remove image" />
+              </Button>
+              <Image
+                fill
+                src={preview}
+                alt="Uploaded invoice"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          {/* <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5">
               <Sparkles className="size-3 text-primary" />
               <span className="text-xs font-medium text-primary">Done</span>
@@ -199,9 +213,9 @@ export function ImageUpload({ onItemsExtracted }: ImageUploadProps) {
             >
               <X className="size-3.5" />
             </Button>
-          </div>
+          </div> */}
         </div>
-      )}
+      ) : null}
 
       <style>{`
         @keyframes progress {

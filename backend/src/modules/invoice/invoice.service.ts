@@ -121,13 +121,14 @@ export class InvoiceService {
     });
   }
 
-  async findAll(query: QueryProductDto) {
+  async findAll(query: QueryProductDto, storeId: string) {
     const order =
       query?.order === 'asc'
         ? asc(schema.invoices[query.orderBy] || 'created_at')
         : desc(schema.invoices[query.orderBy] || 'created_at');
 
     const filters: (SQL<unknown> | undefined)[] = [];
+    filters.push(eq(schema.invoices.storeId, storeId));
 
     if (query.search) {
       filters.push(

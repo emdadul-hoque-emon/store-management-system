@@ -16,6 +16,7 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
   'partial',
   'due',
 ]);
+export const invoiceTypeEnum = pgEnum('invoice_type', ['manual', 'image']);
 
 export const invoices = pgTable('invoices', {
   id: uuid().defaultRandom().primaryKey(),
@@ -37,6 +38,8 @@ export const invoices = pgTable('invoices', {
   due: numeric({ precision: 12, scale: 2 }).default('0'),
 
   status: invoiceStatusEnum().default('due'),
+
+  type: invoiceTypeEnum().default('manual'),
 
   imageUrl: varchar({ length: 500 }), // optional uploaded bill image
 
