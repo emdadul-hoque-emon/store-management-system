@@ -27,16 +27,6 @@ const serverFetchHelper = async (
       ...headers,
     },
   });
-
-  console.log({
-    headers: {
-      "Content-Type":
-        options.body instanceof FormData ? undefined : "application/json",
-      Cookie: accessToken ? `accessToken=${accessToken}` : "",
-      authorization: accessToken ? `Bearer ${accessToken}` : "",
-      ...options.headers,
-    },
-  });
   return response;
 };
 

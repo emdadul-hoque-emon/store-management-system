@@ -12,12 +12,12 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
     redirect("/login");
   }
   return (
-    <main className="h-screen bg-background text-foreground">
+    <main className="h-screen bg-primary-container text-foreground">
       <div className="flex h-full">
         <Sidebar session={session} />
 
         <div className="flex min-w-0 h-full flex-1 flex-col">
-          <header className="print:hidden sticky top-0 z-40 border-b border-outline-variant bg-surface-bright/95 backdrop-blur supports-backdrop-filter:bg-surface-bright/80">
+          <header className="print:hidden sticky top-0 z-40 border-b border-outline-variant backdrop-blur ">
             <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
               <div className="flex min-w-0 items-center gap-3">
                 <ReceiptText className="h-5 w-5 text-primary" />
@@ -39,7 +39,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full border border-outline-variant bg-surface-bright"
+                  className="rounded-full border border-outline-variant"
                 >
                   <Bell className="h-4 w-4" />
                 </Button>

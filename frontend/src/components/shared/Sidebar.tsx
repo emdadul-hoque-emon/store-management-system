@@ -26,7 +26,7 @@ const navigation = [
 const Sidebar = ({ session }: { session: IUser }) => {
   const pathname = usePathname();
   return (
-    <aside className="hidden w-65 h-full flex-col border-r border-outline-variant bg-primary-container text-on-primary-container lg:flex">
+    <aside className="hidden w-65 h-full flex-col border-r border-outline-variant lg:flex">
       <div className="px-6 py-8">
         <div className="flex items-center gap-3 text-surface-bright">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-fixed shadow-sm">

@@ -14,7 +14,6 @@ export const auth = async () => {
     });
     const data: IResponse<IUser> = await res.json();
 
-    console.log(data);
     return data.data;
   } catch (error) {
     console.log(error);
