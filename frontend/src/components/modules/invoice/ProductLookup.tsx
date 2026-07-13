@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { searchProducts, findByBarcode } from "@/lib/product-catalog";
-import type { LineItem } from "@/types/invoice";
+import type { InvoiceItem, LineItem } from "@/types/invoice";
 import { useDebounce } from "@/hooks/useDebounce";
 import { serverFetch } from "@/lib/serverFetch";
 import { InvoiceProduct, IProduct } from "@/types/product";
@@ -16,7 +16,7 @@ import { toast } from "sonner";
 type LookupMode = "search" | "barcode";
 
 interface ProductLookupProps {
-  onAddItem: (item: InvoiceProduct) => void;
+  onAddItem: (item: InvoiceItem) => void;
 }
 
 export function ProductLookup({ onAddItem }: ProductLookupProps) {
@@ -81,7 +81,7 @@ export function ProductLookup({ onAddItem }: ProductLookupProps) {
   }, []);
 
   const handleSelectProduct = useCallback(
-    (product: InvoiceProduct) => {
+    (product: InvoiceItem) => {
       onAddItem(product);
       // setLastAdded(product.id);
       setTimeout(() => setLastAdded(null), 1500);
@@ -210,8 +210,8 @@ export function ProductLookup({ onAddItem }: ProductLookupProps) {
                           handleSelectProduct({
                             ...product,
                             quantity: 1,
-                            total: product.price,
-                          });
+                            total: product.price.toString(),
+                          } as unknown as InvoiceItem);
                         }}
                         className={cn(
                           "w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors",

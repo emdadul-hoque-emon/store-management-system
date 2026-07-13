@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/session";
 import { redirect } from "next/navigation";
+import SidebarDrawer from "@/components/shared/SidebarDrawer";
 
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
@@ -14,13 +15,17 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <main className="h-screen bg-primary-container text-foreground">
       <div className="flex h-full">
-        <Sidebar session={session} />
+        <aside className="hidden w-65 h-full flex-col border-r border-outline-variant lg:flex">
+          <Sidebar session={session} />
+        </aside>
 
         <div className="flex min-w-0 h-full flex-1 flex-col">
           <header className="print:hidden sticky top-0 z-40 border-b border-outline-variant backdrop-blur ">
             <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
               <div className="flex min-w-0 items-center gap-3">
-                <ReceiptText className="h-5 w-5 text-primary" />
+                <div className="block lg:hidden">
+                  <SidebarDrawer session={session} />
+                </div>
                 <div className="min-w-0">
                   <h2 className="truncate text-lg font-semibold text-primary">
                     Invoice Management

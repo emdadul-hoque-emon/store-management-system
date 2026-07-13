@@ -3,10 +3,10 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import ManagementPageHeader from "@/components/shared/ManagementPageHeader";
 import { DownloadIcon, Plus } from "lucide-react";
-import ProductModal from "./ProductModal";
+import InvoiceModal from "./InvoiceModal";
 import { IUnit } from "@/types/unit";
 
-const ProductManagementHeader = () => {
+const InvoiceManagementHeader = () => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -19,18 +19,18 @@ const ProductManagementHeader = () => {
 
   return (
     <>
-      <ProductModal
+      <InvoiceModal
         open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onSuccess={handleSuccess}
       />
 
       <ManagementPageHeader
-        title="Product Management"
-        description="Manage Products information and details"
+        title="Invoice Management"
+        description="Manage Invoice information and details"
         actions={[
           {
-            label: "Add Product",
+            label: "Add Invoice",
             icon: Plus,
             onClick: () => setIsDialogOpen(true),
           },
@@ -45,4 +45,4 @@ const ProductManagementHeader = () => {
   );
 };
 
-export default ProductManagementHeader;
+export default InvoiceManagementHeader;

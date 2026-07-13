@@ -1,3 +1,5 @@
+import { IUnit } from "./unit";
+
 export interface IProduct {
   id: string;
   name: string;
@@ -6,10 +8,7 @@ export interface IProduct {
   stock: number;
   barcode: string;
   image: string;
-  unit: {
-    name: string;
-    shortName: string;
-  };
+  unit: IUnit;
 }
 
 export interface InvoiceProduct extends IProduct {

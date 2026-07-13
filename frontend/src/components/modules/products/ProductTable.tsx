@@ -2,10 +2,8 @@
 import ManagementTable from "@/components/shared/ManagementTable";
 import { IProduct } from "@/types/product";
 import { useRouter } from "next/navigation";
-import React, { useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { productColumns } from "./ProductColumns";
-import TablePagination from "@/components/shared/TablePagination";
-import { IPagination } from "@/types";
 import ProductModal from "./ProductModal";
 
 type Props = {
@@ -42,17 +40,6 @@ const ProductTable = ({ products }: Props) => {
     if (!deletingProduct) return;
 
     setIsDeleting(true);
-    // TODO: Implement deletion logic
-    // const result = await deleteProduct(deletingProduct.id);
-    // setIsDeleting(false);
-
-    // if (result.success) {
-    //   toast.success(result.message || "Product deleted successfully");
-    //   setDeletingProduct(null);
-    //   handleRefresh();
-    // } else {
-    //   toast.error(result.message || "Failed to delete product");
-    // }
   };
   return (
     <>

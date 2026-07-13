@@ -8,65 +8,17 @@ import type { LineItem } from "@/types/invoice";
 import Image from "next/image";
 
 interface ImageUploadProps {
-  onItemsExtracted: (items: LineItem[]) => void;
-  customerName: string;
-  customerPhone: string;
-  storeId: string;
   onFileChange: (file: File | null) => void;
-  imageFile: File | null;
+  preview: string | null;
 }
 
 type UploadState = "idle" | "dragging" | "uploading" | "done" | "error";
 
-export function ImageUpload({
-  onItemsExtracted,
-  customerName,
-  customerPhone,
-  storeId,
-  onFileChange,
-  imageFile,
-}: ImageUploadProps) {
+export function ImageUpload({ onFileChange, preview }: ImageUploadProps) {
   const [state, setState] = useState<UploadState>("idle");
-  const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const simulateExtraction = useCallback(
-    async (file: File) => {
-      setState("uploading");
-      setFileName(file.name);
-
-      // formData
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("storeId", storeId);
-      formData.append("customerName", customerName);
-      formData.append("customerPhone", customerPhone);
-
-      // Read the file as a data URL for preview
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
-      const blob = reader.readAsDataURL(file);
-
-      try {
-        const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        });
-
-        const data = await res.json();
-        console.log(data);
-        setState("done");
-      } catch (error) {
-        console.error("Error extracting invoice items:", error);
-      } finally {
-        setState("done");
-      }
-    },
-    [onItemsExtracted, storeId, customerName, customerPhone],
-  );
 
   const handleFile = useCallback(
     (file: File) => {
@@ -76,7 +28,6 @@ export function ImageUpload({
         return;
       }
       setErrorMsg("");
-      setPreview(URL.createObjectURL(file));
       onFileChange(file); // Notify parent component about the file change
       setState("done");
     },
@@ -95,7 +46,6 @@ export function ImageUpload({
 
   const handleReset = () => {
     setState("idle");
-    setPreview(null);
     setFileName("");
     setErrorMsg("");
     if (inputRef.current) inputRef.current.value = "";
@@ -103,7 +53,7 @@ export function ImageUpload({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-center flex justify-center items-center">
       <input
         ref={inputRef}
         type="file"
@@ -116,7 +66,7 @@ export function ImageUpload({
         name="file"
       />
 
-      {state === "idle" || state === "dragging" || state === "error" ? (
+      {!preview ? (
         <div
           role="button"
           tabIndex={0}
@@ -180,7 +130,7 @@ export function ImageUpload({
             <div className="h-full bg-primary rounded-full animate-[progress_2.2s_ease-in-out_forwards]" />
           </div>
         </div>
-      ) : state === "done" ? (
+      ) : (
         <div className="relative w-80 h-80 rounded-lg overflow-hidden border border-border">
           {preview && (
             <div>
@@ -195,7 +145,7 @@ export function ImageUpload({
                 fill
                 src={preview}
                 alt="Uploaded invoice"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           )}
@@ -215,7 +165,7 @@ export function ImageUpload({
             </Button>
           </div> */}
         </div>
-      ) : null}
+      )}
 
       <style>{`
         @keyframes progress {

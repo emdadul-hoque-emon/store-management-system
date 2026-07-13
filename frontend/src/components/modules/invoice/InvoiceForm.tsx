@@ -17,53 +17,73 @@ import { Separator } from "@/components/ui/separator";
 import { LineItemRow } from "@/components/modules/invoice/LineItemRow";
 import { ImageUpload } from "@/components/modules/invoice/ImageUpload";
 import { cn } from "@/lib/utils";
-import type { InvoiceData, LineItem } from "@/types/invoice";
+import type {
+  Invoice,
+  InvoiceData,
+  InvoiceItem,
+  LineItem,
+} from "@/types/invoice";
 import { InvoiceProduct } from "@/types/product";
 import { serverFetch } from "@/lib/serverFetch";
 import { Button } from "@/components/ui/button";
 import { ProductLookup } from "@/components/modules/invoice/ProductLookup";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { toast } from "sonner";
-
-const DEFAULT_DATA: InvoiceData = {
-  customerName: "",
-  customerPhone: "",
-  items: [],
-  notes: "",
-  taxRate: 0,
-};
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { DialogFooter } from "@/components/ui/dialog";
 
 interface InvoiceFormProps {
-  data?: InvoiceData;
-  onChange?: (data: InvoiceData) => void;
-  storeId: string;
+  invoice?: Invoice;
+  onSuccess?: () => void;
 }
+
+const tableHeader = [
+  { label: "#", width: "w-8" },
+  { label: "Description" },
+  { label: "Qty" },
+  { label: "Price" },
+  { label: "Total" },
+  { label: "", width: "w-8" },
+];
 
 type InputMode = "manual" | "image";
 
-export default function InvoiceForm({
-  data = { ...DEFAULT_DATA },
-  storeId,
-}: InvoiceFormProps) {
-  const [inputMode, setInputMode] = useState<InputMode>("manual");
-  const [customerName, setCustomerName] = useState(data.customerName);
-  const [customerPhone, setCustomerPhone] = useState(data.customerPhone);
-  const [notes, setNotes] = useState(data.notes);
-  const [taxRate, setTaxRate] = useState(data.taxRate);
-  const [toExpanded, setToExpanded] = useState(true);
-  const [products, setProducts] = useState<InvoiceProduct[]>([]);
+export default function InvoiceForm({ invoice }: InvoiceFormProps) {
+  const isEditMode = !!invoice;
+  const [inputMode, setInputMode] = useState<InputMode>(
+    isEditMode ? invoice.type : "manual",
+  );
+  const [products, setProducts] = useState<InvoiceItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(
+    invoice?.imageUrl || null,
+  );
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchInvoiceData = async () => {
+      if (!invoice?.id) return;
+      const data = await serverFetch.get(`/v1/invoice/${invoice.id}/items`);
+      const invoiceData = await data.json();
+      setProducts(invoiceData.data);
+      console.log(invoiceData, "effect res");
+    };
+    fetchInvoiceData();
+  }, [invoice?.id]);
 
   const handlePrint = () => window.print();
 
-  const handleItemsExtracted = (items: LineItem[]) => {
-    setInputMode("manual");
-  };
-
-  const handleAddProduct = (product: InvoiceProduct) => {
+  const handleAddProduct = (product: InvoiceItem) => {
+    // @ts-ignore
     setProducts((prev) => {
       const existing = prev.find((p) => p.id === product.id);
 
@@ -93,63 +113,74 @@ export default function InvoiceForm({
   };
 
   const handleSaveInvoice = async () => {
-    try {
-      setIsSaving(true);
-      setError(null);
+    // try {
+    //   setIsSaving(true);
+    //   setError(null);
+    //   if (!customerName || !customerPhone) {
+    //     setError("Please enter customer name and phone number.");
+    //     return;
+    //   }
+    //   if (inputMode === "image") {
+    //     const formData = new FormData();
+    //     formData.append("storeId", storeId);
+    //     formData.append("customerName", customerName);
+    //     formData.append("customerPhone", customerPhone);
+    //     formData.append("total", "0");
+    //     formData.append("file", imageFile!);
+    //     const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
+    //       method: "POST",
+    //       body: formData,
+    //       credentials: "include",
+    //     });
+    //     const data = await res.json();
+    //     console.log(data);
+    //   } else {
+    //     if (products.length === 0) {
+    //       setError("Please add at least one product to the invoice.");
+    //       return;
+    //     }
+    //     const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         customerName,
+    //         customerPhone: customerPhone.toString(),
+    //         storeId,
+    //         total: products.reduce((acc, p) => acc + p.total, 0).toString(),
+    //         items: products.map((p) => ({
+    //           productId: p.id,
+    //           quantity: p.quantity,
+    //           price: p.price,
+    //           total: p.total.toString(),
+    //         })),
+    //         notes,
+    //         taxRate,
+    //       }),
+    //       credentials: "include",
+    //     });
+    //     const data = await res.json();
+    //   }
+    // } catch (error) {
+    //   console.log(error);
+    //   setError("An error occurred while saving the invoice.");
+    // } finally {
+    //   setIsSaving(false);
+    // }
+  };
 
-      if (!customerName || !customerPhone) {
-        setError("Please enter customer name and phone number.");
-        return;
-      }
+  const handleFileChange = (file: File | null) => {
+    setImageFile(file);
 
-      if (inputMode === "image") {
-        const formData = new FormData();
-        formData.append("storeId", storeId);
-        formData.append("customerName", customerName);
-        formData.append("customerPhone", customerPhone);
-        formData.append("total", "0");
-        formData.append("file", imageFile!);
-        const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
-          method: "POST",
-          body: formData,
-          credentials: "include",
-        });
-        const data = await res.json();
-        console.log(data);
-      } else {
-        if (products.length === 0) {
-          setError("Please add at least one product to the invoice.");
-          return;
-        }
-        const res = await fetch(`http://localhost:4000/api/v1/invoice`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customerName,
-            customerPhone: customerPhone.toString(),
-            storeId,
-            total: products.reduce((acc, p) => acc + p.total, 0).toString(),
-            items: products.map((p) => ({
-              productId: p.id,
-              quantity: p.quantity,
-              price: p.price,
-              total: p.total.toString(),
-            })),
-            notes,
-            taxRate,
-          }),
-          credentials: "include",
-        });
-
-        const data = await res.json();
-      }
-    } catch (error) {
-      console.log(error);
-      setError("An error occurred while saving the invoice.");
-    } finally {
-      setIsSaving(false);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreview(null);
     }
   };
 
@@ -161,8 +192,10 @@ export default function InvoiceForm({
     }
   }, [error]);
 
+  console.log(invoice);
+
   return (
-    <form className="relative h-[calc(100%-20px)] overflow-auto pt-2">
+    <form className="relative h-[calc(100%-20px)] overflow-auto pt-2 pb-12">
       <div
         className={`grid gap-6 ${
           previewVisible
@@ -172,47 +205,35 @@ export default function InvoiceForm({
       >
         <div className="space-y-5 relative">
           <section>
-            <button
-              type="button"
-              onClick={() => setToExpanded((v) => !v)}
-              className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 hover:text-foreground transition-colors"
-            >
-              <span>Bill To (Client Details)</span>
-              {toExpanded ? (
-                <ChevronUp className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-            </button>
-            {toExpanded && (
-              <div className="grid grid-cols-2 gap-3">
-                <Field className="space-y-0.5">
-                  <FieldLabel htmlFor="customerName" className="text-xs">
-                    Name
-                  </FieldLabel>
-                  <Input
-                    id="customerName"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="John Doe"
-                    className="h-8 text-sm"
-                  />
-                </Field>
-                <div className="space-y-1.5">
-                  <FieldLabel htmlFor="customerPhone" className="text-xs">
-                    Phone
-                  </FieldLabel>
-                  <Input
-                    id="customerPhone"
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="(123) 456-7890"
-                    className="h-8 text-sm"
-                  />
-                </div>
+            <p>Bill To (Client Details)</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field className="space-y-0.5">
+                <FieldLabel htmlFor="customerName" className="text-xs">
+                  Name
+                </FieldLabel>
+                <Input
+                  id="customerName"
+                  name="customerName"
+                  defaultValue={isEditMode ? invoice?.customerName : ""}
+                  placeholder="John Doe"
+                  className="h-8 text-sm"
+                />
+              </Field>
+              <div className="space-y-1.5">
+                <FieldLabel htmlFor="customerPhone" className="text-xs">
+                  Phone
+                </FieldLabel>
+                <Input
+                  id="customerPhone"
+                  type="tel"
+                  defaultValue={isEditMode ? invoice?.customerPhone : ""}
+                  name="customerPhone"
+                  placeholder="(123) 456-7890"
+                  className="h-8 text-sm"
+                />
               </div>
-            )}
+            </div>
           </section>
           <Separator />
           {/* Line Items */}
@@ -252,52 +273,40 @@ export default function InvoiceForm({
             </div>
 
             {inputMode === "image" ? (
-              <ImageUpload
-                onItemsExtracted={handleItemsExtracted}
-                customerName={customerName}
-                customerPhone={customerPhone}
-                storeId={storeId}
-                onFileChange={(file) => setImageFile(file)}
-                imageFile={imageFile}
-              />
+              <ImageUpload onFileChange={handleFileChange} preview={preview} />
             ) : (
               <div>
                 <ProductLookup onAddItem={handleAddProduct} />
                 {products.length > 0 ? (
                   <div className="overflow-x-auto mb-2">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="py-1.5 pr-3 text-left text-xs text-muted-foreground font-medium w-8">
-                            #
-                          </th>
-                          <th className="py-1.5 pr-3 text-left text-xs text-muted-foreground font-medium">
-                            Description
-                          </th>
-                          <th className="py-1.5 pr-3 text-left text-xs text-muted-foreground font-medium w-24">
-                            Qty
-                          </th>
-                          <th className="py-1.5 pr-3 text-left text-xs text-muted-foreground font-medium w-32">
-                            Unit Price
-                          </th>
-                          <th className="py-1.5 pr-3 text-right text-xs text-muted-foreground font-medium w-28">
-                            Total
-                          </th>
-                          <th className="w-8" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {products.map((product, i) => (
-                          <LineItemRow
-                            key={product.id}
-                            item={product}
-                            index={i}
-                            onChange={() => {}}
-                            onRemove={() => {}}
-                          />
+                    <Table className="w-full">
+                      <TableHeader>
+                        <TableRow>
+                          {tableHeader.map((header) => (
+                            <TableHead
+                              key={header.label}
+                              className="py-1.5 pr-3 text-left text-xs text-muted-foreground font-medium"
+                            >
+                              {header.label}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {products.map((product, index) => (
+                          <TableRow key={product.id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>
+                              {/* @ts-ignore */}
+                              {product?.name ?? product.product.name}
+                            </TableCell>
+                            <TableCell>{product.quantity}</TableCell>
+                            <TableCell>${product.price}</TableCell>
+                            <TableCell>${product.total}</TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-32">
@@ -326,8 +335,8 @@ export default function InvoiceForm({
                   min={0}
                   max={100}
                   step={0.1}
-                  value={taxRate}
-                  onChange={(e) => setTaxRate(Number(e.target.value))}
+                  // value={taxRate}
+                  // onChange={(e) => setTaxRate(Number(e.target.value))}
                   placeholder="0"
                   className="h-8 text-sm"
                 />
@@ -338,8 +347,8 @@ export default function InvoiceForm({
                 </FieldLabel>
                 <Input
                   id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
+                  // value={notes}
+                  // onChange={(e) => setNotes(e.target.value)}
                   placeholder="Payment terms, thank you note…"
                   className="h-8 text-sm"
                 />
@@ -348,11 +357,11 @@ export default function InvoiceForm({
           </section>
         </div>
       </div>
-      <footer className="fixed w-full lg:w-[calc(100%-260px)] h-12 bottom-0 z-30 bg-card/80 backdrop-blur-sm flex justify-center items-center">
+      <DialogFooter className="fixed w-full -translate-x-1/2 left-1/2 lg:w-[calc(100%-260px)] h-12 bottom-0 z-30 bg-card/80 backdrop-blur-sm flex justify-center items-center">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-end gap-4">
             <div className="flex items-center gap-2">
-              <Button
+              {/* <Button
                 variant="ghost"
                 onClick={() => setPreviewVisible((v) => !v)}
                 className="hidden md:flex text-xs"
@@ -368,7 +377,7 @@ export default function InvoiceForm({
                     Show Preview
                   </>
                 )}
-              </Button>
+              </Button> */}
               <Button
                 variant="outline"
                 onClick={handlePrint}
@@ -388,7 +397,7 @@ export default function InvoiceForm({
             </div>
           </div>
         </div>
-      </footer>
+      </DialogFooter>
     </form>
   );
 }

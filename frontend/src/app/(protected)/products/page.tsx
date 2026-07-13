@@ -1,34 +1,29 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-  DownloadIcon,
-  Edit,
-  Plus,
-  Trash2,
-} from "lucide-react";
-import ProductForm from "@/components/modules/products/ProductForm";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { serverFetch } from "@/lib/serverFetch";
 import { IResponse } from "@/types/response";
 import { IProduct } from "@/types/product";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import ProductTable from "@/components/modules/products/ProductTable";
 import ProductManagementHeader from "@/components/modules/products/ProductManagementHeader";
 import TableSkeleton from "@/components/shared/TableSkeleton";
 import TablePagination from "@/components/shared/TablePagination";
 import SearchFilter from "@/components/shared/SearchFilter";
-import SelectFilter from "@/components/shared/SelectFilter";
 import RefreshButton from "@/components/shared/RefreshButton";
+import { IUnit } from "@/types/unit";
 
 const page = async ({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string }>;
 }) => {
-  const { limit = "10", page = "1", search = "" } = await searchParams;
+  const {
+    limit = "10",
+    page = "1",
+    search = "",
+    orderBy = "",
+    order = "",
+  } = await searchParams;
   const res = await serverFetch.get(
-    `/v1/product?search=${search}&limit=${limit}&page=${page}`,
+    `/v1/product?search=${search}&limit=${limit}&page=${page}&orderBy=${orderBy}&order=${order}`,
   );
   const data: IResponse<IProduct[]> = await res.json();
 

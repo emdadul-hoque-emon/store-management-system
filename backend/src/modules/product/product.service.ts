@@ -29,6 +29,7 @@ export class ProductService {
   }
 
   async findAll(query: QueryProductDto) {
+    console.log(query);
     // await this.db.insert(schema.products).values(productSeed);
     const order =
       query?.order === 'asc'
@@ -48,6 +49,7 @@ export class ProductService {
         stock: schema.products.stock,
         barcode: schema.products.barcode,
         unit: {
+          id: schema.units.id,
           name: schema.units.name,
           shortName: schema.units.shortName,
         },

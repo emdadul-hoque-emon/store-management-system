@@ -3,6 +3,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { IProduct } from "@/types/product";
 import React from "react";
 import ProductForm from "./ProductForm";
+import { IUnit } from "@/types/unit";
 
 type Props = {
   product?: IProduct;

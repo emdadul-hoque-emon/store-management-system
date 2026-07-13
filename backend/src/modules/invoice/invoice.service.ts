@@ -196,6 +196,53 @@ export class InvoiceService {
     }
     return invoice;
   }
+  async findOneItems(id: string) {
+    // const invoice = await this.db.query.invoices.findFirst({
+    //   where: eq(schema.invoices.id, id),
+    //   with: {
+    //     items: {
+    //       with: {
+    //         product: {
+    //           columns: {
+    //             name: true,
+    //             barcode: true,
+    //           },
+    //         },
+    //       },
+    //       columns: {
+    //         id: true,
+    //         quantity: true,
+    //         price: true,
+    //         total: true,
+    //       },
+    //     },
+    //   },
+    // });
+
+    // if (!invoice) {
+    //   throw new NotFoundException(`Invoice with id ${id} not found`);
+    // }
+    // return invoice;
+    const items = await this.db.query.invoiceItems.findMany({
+      where: eq(schema.invoiceItems.invoiceId, id),
+      with: {
+        product: {
+          columns: {
+            name: true,
+            barcode: true,
+          },
+        },
+      },
+      columns: {
+        id: true,
+        quantity: true,
+        price: true,
+        total: true,
+      },
+    });
+
+    return items;
+  }
 
   update(id: number, updateInvoiceDto: UpdateInvoiceDto) {
     return `This action updates a #${id} invoice`;

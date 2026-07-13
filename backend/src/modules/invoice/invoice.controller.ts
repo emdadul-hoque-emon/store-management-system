@@ -61,6 +61,11 @@ export class InvoiceController {
     return this.invoiceService.findAll(query, req.user.storeId);
   }
 
+  @Get(':id/items')
+  findOneItems(@Param('id') id: string) {
+    return this.invoiceService.findOneItems(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.invoiceService.findOne(id);
